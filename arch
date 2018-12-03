@@ -1,0 +1,11 @@
+---
+- hosts: local
+
+  pre_tasks:
+    - add_host:
+        name: "{{ inventory_hostname }}"
+        groups: arch
+      changed_when: false
+
+  roles:
+    - os/arch/install
