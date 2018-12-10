@@ -1,0 +1,19 @@
+---
+- hosts: local
+  gather_facts: false
+  tasks:
+    - add_host:
+        name: "{{ inventory_hostname }}"
+        groups: _arch_chroot
+        ansible_connection: chroot
+        ansible_host: /tmp/root.x86_64/
+        ansible_executable: /bin/bash
+      changed_when: false
+
+- hosts: _arch_chroot
+  gather_facts: false
+  tasks:
+    - name: Pacstrap installed
+      raw: pacstrap /mnt base
+      register: chroot_packstrap
+  
