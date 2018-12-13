@@ -1,0 +1,55 @@
+---
+- hosts: local
+  gather_facts: false
+  tasks:
+    - add_host:
+        name: "{{ inventory_hostname }}"
+        groups: _arch_chroot
+        ansible_connection: chroot
+        ansible_host: /tmp/root.x86_64/
+        ansible_executable: /bin/bash
+      changed_when: false
+
+- hosts: _arch_chroot
+  gather_facts: false
+  vars:
+    ansible_python_interpreter: /mnt/usr/bin/python
+  environment:
+    LD_LIBRARY_PATH: /mnt/usr/lib
+  tasks:
+    - name: Detect existing pacman keyring
+      raw: test -d /etc/pacman.d/gnupg
+      failed_when: false
+      changed_when: false      
+      register: pacman_keyring
+
+    - name: Pacman keyring initialized
+      raw: pacman-key --init
+      when: pacman_keyring.rc != 0
+      register: pacman_keyring_init
+
+    - name: Pacman keys populated
+      raw: echo y | pacman-key --populate archlinux
+      args:
+        executor: /bin/bash
+      register: pacman_key_refresh
+
+    - name: Pacman keys refreshed
+      raw: pacman-key --refresh-keys
+
+    - name: Pacstrap installed from bootstrap
+      raw: pacstrap /mnt base {{ arch_bootstrap_pkgs|join(' ') }}
+      register: chroot_packstrap
+      vars:
+        arch_bootstrap_pkgs:
+          - python
+          - btrfs-progs
+
+    - name: fstab generated
+      command: genfstab -U /mnt
+      register: install_chroot_fstab
+
+    - name: fstab copied into chroot
+      copy:
+        content: install_chroot_fstab.stdout
+        dest: /mnt/etc/fstab
