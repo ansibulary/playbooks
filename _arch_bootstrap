@@ -16,7 +16,7 @@
     ansible_python_interpreter: /mnt/usr/bin/python
   environment:
     LD_LIBRARY_PATH: /mnt/usr/lib
-  tasks:
+  pre_tasks:
     - name: Detect existing pacman keyring
       raw: test -d /etc/pacman.d/gnupg
       failed_when: false
@@ -54,3 +54,8 @@
         content: "{{ install_chroot_fstab.stdout }}"
         dest: /mnt/etc/fstab
       when: pacman_keyring.rc != 0
+
+  roles:
+    - { role: os/common/time }
+    - { role: os/common/locale }
+    - { role: os/common/hostname }
