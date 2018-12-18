@@ -33,6 +33,7 @@
       args:
         executor: /bin/bash
       register: pacman_key_refresh
+      when: pacman_keyring.rc != 0
 
     - name: Pacstrap installed from bootstrap
       raw: pacstrap /mnt base {{ arch_bootstrap_pkgs }}
@@ -41,12 +42,15 @@
         arch_bootstrap_pkgs:
           - python
           - "{{ arch_bootstrap_progs }}"
+      when: pacman_keyring.rc != 0
 
     - name: fstab generated
       command: genfstab -U /mnt
       register: install_chroot_fstab
+      when: pacman_keyring.rc != 0
 
     - name: fstab copied into chroot
       copy:
         content: "{{ install_chroot_fstab.stdout }}"
         dest: /mnt/etc/fstab
+      when: pacman_keyring.rc != 0
