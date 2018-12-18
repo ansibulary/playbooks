@@ -1,5 +1,14 @@
 ---
 - hosts: local
 
+  # vars:
+  #   # Mapping of pre-formated block devices
+  #   arch_install_partitions:
+  #     /: /dev/mapper/vg-root
+  #     /boot: /dev/sda2
+  #     /boot/efi: /dev/sda1
+  #     /home: /dev/mapper/vg0-home
+  #     swap: /dev/mapper/vg0-swap
+
   roles:
     - os/arch/install
