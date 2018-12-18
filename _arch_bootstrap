@@ -6,7 +6,7 @@
         name: "{{ inventory_hostname }}"
         groups: _arch_chroot
         ansible_connection: chroot
-        ansible_host: /tmp/root.x86_64/
+        ansible_host: "{{ arch_chroot|default('/tmp/root.x86_64/') }}"
         ansible_executable: /bin/bash
       changed_when: false
 
@@ -34,16 +34,13 @@
         executor: /bin/bash
       register: pacman_key_refresh
 
-    - name: Pacman keys refreshed
-      raw: pacman-key --refresh-keys
-
     - name: Pacstrap installed from bootstrap
-      raw: pacstrap /mnt base {{ arch_bootstrap_pkgs|join(' ') }}
+      raw: pacstrap /mnt base {{ arch_bootstrap_pkgs }}
       register: chroot_packstrap
       vars:
         arch_bootstrap_pkgs:
           - python
-          - btrfs-progs
+          - "{{ arch_bootstrap_progs }}"
 
     - name: fstab generated
       command: genfstab -U /mnt
@@ -51,5 +48,5 @@
 
     - name: fstab copied into chroot
       copy:
-        content: install_chroot_fstab.stdout
+        content: "{{ install_chroot_fstab.stdout }}"
         dest: /mnt/etc/fstab
